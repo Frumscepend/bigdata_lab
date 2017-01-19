@@ -26,13 +26,24 @@ def euclidean_distance(instance1, instance2):
     return sqrt(sum(squares))
 
 
-def get_neighbours(instance, train, k):
+def get_neighbours(instance, train, k, h):
     distances = []
     index = 0
     for i in train.ix[:, :-1].values:
-        # distances.append(index)
-        # index += 1
-        distances.append(euclidean_distance(instance, i))
+        weight = abs((k + 1 - index) / k)
+        r = 2
+        h = 1
+        while r > 1:
+            r = euclidean_distance(i, instance) * weight / h
+            h += 1
+        y = []
+        a = 0
+        while True:
+            if a != 0:
+                y.append(1)
+            if True:
+                break
+        distances.append((1 - abs(r)) * r)
     distances = tuple(zip(distances, train[u'Class'].values))
     return sorted(distances, key=operator.itemgetter(0))[:k]
 
@@ -41,21 +52,13 @@ def get_response(neighbours):
     return Counter(neighbours).most_common()[0][0][1]
 
 
-def get_predictions(train, test, k):
+def get_predictions(train, test, k, h):
     predictions = []
     for i in test.ix[:, :-1].values:
-        neighbours = get_neighbours(i, train, k)
+        neighbours = get_neighbours(i, train, k, h)
         response = get_response(neighbours)
         predictions.append(response)
     return predictions
-
-
-def mean(instance):
-    return sum(instance)/len(instance)
-
-
-def get_accuracy(test, predictions):
-    return mean([i == j for i, j in zip(test[u'Class'].values, predictions)])
 
 def get_tp(test, predictions):
     s = 0
@@ -88,10 +91,18 @@ def get_recall(test, predictions):
     return get_tp(test, predictions) / (get_tp(test, predictions) + get_fn(test, predictions))
 
 
-print(get_accuracy(test, get_predictions(train, test, 5)))
-print(get_precision(test, get_predictions(train, test, 5)))
-print(get_recall(test, get_predictions(train, test, 5)))
+def mean(instance):
+    return sum(instance)/len(instance)
+
+
+def get_accuracy(test, predictions):
+    return mean([i == j for i, j in zip(test[u'Class'].values, predictions)])
+
+
+print(get_accuracy(test, get_predictions(train, test, 5, 5)))
+print(get_precision(test, get_predictions(train, test, 5, 5)))
+print(get_recall(test, get_predictions(train, test, 5, 5)))
 
 y_actu = pd.Series(test[u'Class'].values, name='Actual')
-y_pred = pd.Series(get_predictions(train, test, 5), name='Predicted')
+y_pred = pd.Series(get_predictions(train, test, 5, 5), name='Predicted')
 print(pd.crosstab(y_actu, y_pred, rownames=['Actual'], colnames=['Predicted'], margins=True))

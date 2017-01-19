@@ -32,12 +32,6 @@ def get_neighbours(instance, train, k, index):
     for i in train.ix[:, :-1].values:
         weight = abs((k + 1 - index) / k)
         distances.append(euclidean_distance(i, instance) * weight)
-        # index += 1
-    # weight = 0
-    # for d in distances:
-    #     if (d > 0):
-    #         weight = weight + 1.0/d
-    # weight = 4 * weight / len(distances) + 1
     distances = tuple(zip(distances, train[u'Class'].values))
     return sorted(distances, key=operator.itemgetter(0))[:k]
 
@@ -56,49 +50,42 @@ def get_predictions(train, test, k):
         index += 1
     return predictions
 
-def get_tp(test, predictions):
-    s = 0
-    for type in set(predictions):
-        s += sum([i == j and j == type for i, j in zip(test[u'Class'].values, predictions)])
-    return s
 
-def get_fp(test, predictions):
-    s = 0
-    for type in set(predictions):
-        s += sum([i == j and j != type for i, j in zip(test[u'Class'].values, predictions)])
-    return s
-
-def get_tn(test, predictions):
-    s = 0
-    for type in set(predictions):
-        s += sum([i != j and j != type for i, j in zip(test[u'Class'].values, predictions)])
-    return s
-
-def get_fn(test, predictions):
-    s = 0
-    for type in set(predictions):
-        s += sum([i != j and j == type for i, j in zip(test[u'Class'].values, predictions)])
-    return s
-
-def get_precision(test, predictions):
-    return get_tp(test, predictions) / (get_tp(test, predictions) + get_fp(test, predictions))
-
-def get_recall(test, predictions):
-    return get_tp(test, predictions) / (get_tp(test, predictions) + get_fn(test, predictions))
+def get_tp(test, predictions, type):
+    return sum([i == j and j == type for i, j in zip(test[u'Class'].values, predictions)])
 
 
-def mean(instance):
-    return sum(instance)/len(instance)
+def get_fp(test, predictions, type):
+    return sum([i == j and j != type for i, j in zip(test[u'Class'].values, predictions)])
 
 
-def get_accuracy(test, predictions):
-    return mean([i == j for i, j in zip(test[u'Class'].values, predictions)])
+def get_tn(test, predictions, type):
+    return sum([i != j and j != type for i, j in zip(test[u'Class'].values, predictions)])
 
 
-print(get_accuracy(test, get_predictions(train, test, 5)))
-print(get_precision(test, get_predictions(train, test, 5)))
-print(get_recall(test, get_predictions(train, test, 5)))
+def get_fn(test, predictions, type):
+    return sum([i != j and j == type for i, j in zip(test[u'Class'].values, predictions)])
+
+
+def get_precision(test, predictions, type):
+    return get_tp(test, predictions, type) / (get_tp(test, predictions, type) + get_fp(test, predictions, type))
+
+
+def get_recall(test, predictions, type):
+    return get_tp(test, predictions, type) / (get_tp(test, predictions, type) + get_fn(test, predictions, type))
+
+
+def get_accuracy(test, predictions, type):
+    return (get_tp(test, predictions, type) + get_tn(test, predictions, type)) / len(predictions)
+    # return mean([i == j for i, j in zip(test[u'Class'].values, predictions)])
+
+predictions = get_predictions(train, test, 5)
+for type in set(predictions):
+    print(type, " accuracy : ", get_accuracy(test, predictions, type))
+    print(type, " precision : ", get_precision(test, predictions, type))
+    print(type, " recall : ", get_recall(test, predictions, type))
+print("")
 
 y_actu = pd.Series(test[u'Class'].values, name='Actual')
-y_pred = pd.Series(get_predictions(train, test, 5), name='Predicted')
+y_pred = pd.Series(predictions, name='Predicted')
 print(pd.crosstab(y_actu, y_pred, rownames=['Actual'], colnames=['Predicted'], margins=True))

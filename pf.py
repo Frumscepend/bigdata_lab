@@ -2,6 +2,7 @@ from __future__ import division
 import pandas as pd
 import numpy as np
 from math import sqrt
+import math
 import operator
 from collections import Counter
 
@@ -29,21 +30,23 @@ def euclidean_distance(instance1, instance2):
 def get_neighbours(instance, train, k, h):
     distances = []
     index = 0
-    for i in train.ix[:, :-1].values:
-        weight = abs((k + 1 - index) / k)
+    for i in train.ix[:, :5].values:
+        y = 0
+        if i[4] == "Iris-setosa":
+            y = 1
+        if i[4] == "Iris-versicolor":
+            y = 2
+        if i[4] == "Iris-virginica":
+            y = 3
+        i = i[:-1]
+        weight = (1 - k) * k * y
         r = 2
         h = 1
         while r > 1:
             r = euclidean_distance(i, instance) * weight / h
             h += 1
-        y = []
-        a = 0
-        while True:
-            if a != 0:
-                y.append(1)
-            if True:
-                break
         distances.append((1 - abs(r)) * r)
+        index += 1
     distances = tuple(zip(distances, train[u'Class'].values))
     return sorted(distances, key=operator.itemgetter(0))[:k]
 

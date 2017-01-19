@@ -37,6 +37,7 @@ def get_neighbours(instance, train, k, h):
             r = euclidean_distance(i, instance) * weight / h
             h += 1
         distances.append((1 - abs(r)) * r)
+        index += 1
     distances = tuple(zip(distances, train[u'Class'].values))
     return sorted(distances, key=operator.itemgetter(0))[:k]
 

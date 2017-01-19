@@ -56,15 +56,15 @@ def get_tp(test, predictions, type):
 
 
 def get_fp(test, predictions, type):
-    return sum([i == j and j != type for i, j in zip(test[u'Class'].values, predictions)])
+    return sum([i != j and j == type for i, j in zip(test[u'Class'].values, predictions)])
 
 
 def get_tn(test, predictions, type):
-    return sum([i != j and j != type for i, j in zip(test[u'Class'].values, predictions)])
+    return sum([i == j and j != type for i, j in zip(test[u'Class'].values, predictions)])
 
 
 def get_fn(test, predictions, type):
-    return sum([i != j and j == type for i, j in zip(test[u'Class'].values, predictions)])
+    return sum([i != j and j != type for i, j in zip(test[u'Class'].values, predictions)])
 
 
 def get_precision(test, predictions, type):
